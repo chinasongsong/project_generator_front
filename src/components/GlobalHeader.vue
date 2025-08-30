@@ -8,7 +8,7 @@
           <h1 class="site-title">AI零代码应用生成平台</h1>
         </div>
       </div>
-      
+
       <!-- 中间菜单 -->
       <div class="header-center">
         <a-menu
@@ -19,7 +19,7 @@
           @click="handleMenuClick"
         />
       </div>
-      
+
       <!-- 右侧用户信息 -->
       <div class="header-right">
         <a-button type="primary" @click="handleLogin">
@@ -49,31 +49,35 @@ const menuItems = [
   {
     key: 'home',
     label: '首页',
-    icon: '🏠'
+    icon: '🏠',
   },
   {
     key: 'projects',
     label: '项目管理',
-    icon: '📁'
+    icon: '📁',
   },
   {
     key: 'templates',
     label: '模板中心',
-    icon: '📋'
+    icon: '📋',
   },
   {
     key: 'docs',
     label: '帮助文档',
-    icon: '📚'
-  }
+    icon: '📚',
+  },
 ]
 
-// 监听路由变化，更新选中的菜单项
-watch(() => route.name, (newRouteName) => {
-  if (newRouteName) {
-    selectedKeys.value = [newRouteName as string]
-  }
-}, { immediate: true })
+// 监听路由变化，更新选中的菜单项 保证页面刷新后，菜单项选中状态正确
+watch(
+  () => route.name,
+  (newRouteName) => {
+    if (newRouteName) {
+      selectedKeys.value = [newRouteName as string]
+    }
+  },
+  { immediate: true },
+)
 
 // 菜单点击处理
 const handleMenuClick = ({ key }: { key: string }) => {
@@ -132,7 +136,7 @@ const handleLogin = () => {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color:rgba(24, 97, 255, 0.83);
+  color: rgba(24, 97, 255, 0.83);
 }
 
 .header-center {
@@ -156,11 +160,11 @@ const handleLogin = () => {
   .header-content {
     padding: 0 16px;
   }
-  
+
   .site-title {
     font-size: 16px;
   }
-  
+
   .header-menu {
     display: none;
   }
@@ -171,4 +175,4 @@ const handleLogin = () => {
     display: none;
   }
 }
-</style> 
+</style>

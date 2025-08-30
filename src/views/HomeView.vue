@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+import { healthCheck } from '@/api/healthyController.ts'
+
+healthCheck().then((res) => {
+  console.log(res)
+})
+
 const router = useRouter()
 
 const startCreate = () => {
@@ -16,16 +22,10 @@ const viewTemplates = () => {
   <div class="home-view">
     <div class="hero-section">
       <h1>AI零代码应用生成平台</h1>
-      <p class="hero-description">
-        无需编程知识，通过AI智能生成，快速构建您的应用
-      </p>
+      <p class="hero-description">无需编程知识，通过AI智能生成，快速构建您的应用</p>
       <div class="hero-actions">
-        <a-button type="primary" size="large" @click="startCreate">
-          开始创建
-        </a-button>
-        <a-button size="large" @click="viewTemplates">
-          浏览模板
-        </a-button>
+        <a-button type="primary" size="large" @click="startCreate"> 开始创建 </a-button>
+        <a-button size="large" @click="viewTemplates"> 浏览模板 </a-button>
       </div>
     </div>
 
@@ -61,10 +61,7 @@ const viewTemplates = () => {
             <template #cover>
               <div class="feature-icon">🚀</div>
             </template>
-            <a-card-meta
-              title="快速部署"
-              description="一键部署到云端，立即上线运行"
-            />
+            <a-card-meta title="快速部署" description="一键部署到云端，立即上线运行" />
           </a-card>
         </a-col>
       </a-row>
@@ -127,16 +124,16 @@ const viewTemplates = () => {
   .hero-section h1 {
     font-size: 32px;
   }
-  
+
   .hero-description {
     font-size: 16px;
   }
-  
+
   .hero-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .features-section h2 {
     font-size: 24px;
   }

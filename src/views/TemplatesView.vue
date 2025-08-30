@@ -6,7 +6,7 @@
       <a-col :span="8" v-for="template in templates" :key="template.id">
         <a-card hoverable>
           <template #cover>
-            <img :alt="template.name" :src="template.image" />
+            <img :alt="template.name" />
           </template>
           <a-card-meta :title="template.name" :description="template.description" />
         </a-card>
