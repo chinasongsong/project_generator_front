@@ -16,6 +16,7 @@
           mode="horizontal"
           :items="menuItems"
           class="header-menu"
+          @click="handleMenuClick"
         />
       </div>
       
@@ -33,8 +34,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { UserOutlined } from '@ant-design/icons-vue'
+
+const router = useRouter()
+const route = useRoute()
 
 // 选中的菜单项
 const selectedKeys = ref<string[]>(['home'])
@@ -62,6 +67,19 @@ const menuItems = [
     icon: '📚'
   }
 ]
+
+// 监听路由变化，更新选中的菜单项
+watch(() => route.name, (newRouteName) => {
+  if (newRouteName) {
+    selectedKeys.value = [newRouteName as string]
+  }
+}, { immediate: true })
+
+// 菜单点击处理
+const handleMenuClick = ({ key }: { key: string }) => {
+  selectedKeys.value = [key]
+  router.push({ name: key })
+}
 
 // 登录处理
 const handleLogin = () => {
