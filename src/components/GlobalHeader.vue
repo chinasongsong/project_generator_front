@@ -22,53 +22,68 @@
 
       <!-- 右侧用户信息 -->
       <div class="header-right">
-        <a-button type="primary" @click="handleLogin">
-          <template #icon>
-            <UserOutlined />
-          </template>
-          登录
-        </a-button>
+        <template v-if="userStore.loginUser && userStore.loginUser.userName">
+          <a-dropdown placement="bottomRight" :trigger="['hover']">
+            <div class="user-info" @click.prevent>
+              <a-avatar :size="32">
+                <template v-if="userStore.loginUser.userAvatar">
+                  <img :src="userStore.loginUser.userAvatar" alt="avatar" class="avatar-img" />
+                </template>
+                <template v-else>
+                  <UserOutlined />
+                </template>
+              </a-avatar>
+              <span class="user-name">{{ userStore.loginUser.userName }}</span>
+            </div>
+            <template #overlay>
+              <a-menu @click="onUserMenuClick">
+                <a-menu-item key="logout">退出登录</a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+        </template>
+        <template v-else>
+          <a-button type="primary" @click="handleLogin">
+            <template #icon>
+              <UserOutlined />
+            </template>
+            登录
+          </a-button>
+        </template>
       </div>
     </div>
   </a-layout-header>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { UserOutlined } from '@ant-design/icons-vue'
+import { getLoginUser, userLogout } from '@/api/userController'
+import { message } from 'ant-design-vue'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
+
+// 初始化登录态
+onMounted(() => {
+  userStore.fetchLoginUser()
+})
 
 // 选中的菜单项
 const selectedKeys = ref<string[]>(['home'])
 
 // 菜单配置
 const menuItems = [
-  {
-    key: 'home',
-    label: '首页',
-    icon: '🏠',
-  },
-  {
-    key: 'projects',
-    label: '项目管理',
-    icon: '📁',
-  },
-  {
-    key: 'templates',
-    label: '模板中心',
-    icon: '📋',
-  },
-  {
-    key: 'docs',
-    label: '帮助文档',
-    icon: '📚',
-  },
+  { key: 'home', label: '首页', icon: '🏠' },
+  { key: 'projects', label: '项目管理', icon: '📁' },
+  { key: 'templates', label: '模板中心', icon: '📋' },
+  { key: 'docs', label: '帮助文档', icon: '📚' },
 ]
 
-// 监听路由变化，更新选中的菜单项 保证页面刷新后，菜单项选中状态正确
+// 保持菜单选中同步
 watch(
   () => route.name,
   (newRouteName) => {
@@ -85,10 +100,27 @@ const handleMenuClick = ({ key }: { key: string }) => {
   router.push({ name: key })
 }
 
+// 用户菜单点击
+const onUserMenuClick = async ({ key }: { key: string }) => {
+  if (key === 'logout') {
+    try {
+      const { data } = await userLogout()
+      if (data?.code === 0) {
+        userStore.clearLoginUser()
+        message.success('已退出登录')
+        router.push('/user/login')
+      } else {
+        message.error(data?.message || '退出失败')
+      }
+    } catch (e) {
+      message.error('退出失败，请检查网络连接')
+    }
+  }
+}
+
 // 登录处理
 const handleLogin = () => {
-  console.log('用户点击登录')
-  // TODO: 实现登录逻辑
+  router.push('/user/login')
 }
 </script>
 
@@ -119,19 +151,16 @@ const handleLogin = () => {
   display: flex;
   align-items: center;
 }
-
 .logo-container {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .logo {
   width: 32px;
   height: 32px;
   object-fit: contain;
 }
-
 .site-title {
   margin: 0;
   font-size: 18px;
@@ -144,7 +173,6 @@ const handleLogin = () => {
   display: flex;
   justify-content: center;
 }
-
 .header-menu {
   border: none;
   background: transparent;
@@ -154,17 +182,29 @@ const handleLogin = () => {
   display: flex;
   align-items: center;
 }
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.user-name {
+  color: #333;
+  font-size: 14px;
+}
 
-/* 响应式设计 */
 @media (max-width: 768px) {
   .header-content {
     padding: 0 16px;
   }
-
   .site-title {
     font-size: 16px;
   }
-
   .header-menu {
     display: none;
   }
