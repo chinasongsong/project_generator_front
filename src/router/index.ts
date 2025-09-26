@@ -12,9 +12,6 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
     {
@@ -42,7 +39,33 @@ const router = createRouter({
       name: 'userRegister',
       component: () => import('../pages/UserRegister.vue'),
     },
+    {
+      path: '/admin/users',
+      name: 'adminUsers',
+      component: () => import('../pages/AdminUsers.vue'),
+      meta: { requiresAdmin: true },
+    },
   ],
+})
+
+// 路由守卫：仅管理员可访问标记了 requiresAdmin 的路由
+router.beforeEach(async (to, from, next) => {
+  if (to.meta && (to.meta as any).requiresAdmin) {
+    // 动态引入，以避免循环依赖
+    const { useUserStore } = await import('@/stores/user')
+    const store = useUserStore()
+    // 如果还没有用户信息，尝试获取一次
+    if (!store.loginUser) {
+      await store.fetchLoginUser()
+    }
+    if (store.loginUser?.userRole === 'admin') {
+      next()
+    } else {
+      next('/user/login')
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

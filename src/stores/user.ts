@@ -31,6 +31,8 @@ export const useUserStore = defineStore('user', {
         const { data } = await getLoginUser()
         if (data?.code === 0) {
           this.setLoginUser((data.data || null) as API.LoginUserVO | null)
+        } else {
+          this.clearLoginUser()
         }
       } finally {
         this.loading = false
