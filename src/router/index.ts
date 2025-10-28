@@ -32,18 +32,34 @@ const router = createRouter({
     {
       path: '/user/login',
       name: 'userLogin',
-      component: () => import('../pages/UserLogin.vue'),
+      component: () => import('../pages/user/UserLogin.vue'),
     },
     {
       path: '/user/register',
       name: 'userRegister',
-      component: () => import('../pages/UserRegister.vue'),
+      component: () => import('../pages/user/UserRegister.vue'),
     },
     {
       path: '/admin/users',
       name: 'adminUsers',
-      component: () => import('../pages/AdminUsers.vue'),
+      component: () => import('../pages/user/AdminUsers.vue'),
       meta: { requiresAdmin: true },
+    },
+    {
+      path: '/admin/apps',
+      name: 'adminApps',
+      component: () => import('../pages/app/AdminApps.vue'),
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: '/app/chat/:id',
+      name: 'appChat',
+      component: () => import('../pages/app/AppChatView.vue'),
+    },
+    {
+      path: '/app/edit/:id',
+      name: 'appEdit',
+      component: () => import('../pages/app/AppEditView.vue'),
     },
   ],
 })

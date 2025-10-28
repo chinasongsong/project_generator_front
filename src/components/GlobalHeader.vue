@@ -65,6 +65,7 @@ import {
   FileTextOutlined,
   BookOutlined,
   TeamOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons-vue'
 
 const userStore = useUserStore()
@@ -109,6 +110,12 @@ const originItems = [
     icon: () => h(TeamOutlined),
     label: '用户管理',
     title: '用户管理',
+  },
+  {
+    key: '/admin/apps',
+    icon: () => h(AppstoreOutlined),
+    label: '应用管理',
+    title: '应用管理',
   },
 ]
 
