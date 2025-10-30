@@ -35,6 +35,7 @@ declare namespace API {
   type AppUpdateRequest = {
     id?: number
     appName?: string
+    cover?: string
   }
 
   type AppVO = {

@@ -34,22 +34,20 @@
           <a-card hoverable class="app-card">
             <template #cover>
               <div class="app-cover">
-                <img v-if="app.cover" :src="app.cover" alt="cover" />
+                <img
+                  v-if="app.cover"
+                  :src="getCoverUrl(app.cover)"
+                  alt="cover"
+                  referrerpolicy="no-referrer"
+                  crossorigin="anonymous"
+                  @error="handleImgError"
+                />
                 <div v-else class="app-cover-placeholder">
                   <FileTextOutlined />
                 </div>
               </div>
             </template>
-            <a-card-meta>
-              <template #title>
-                <div class="app-title">{{ app.appName || '未命名应用' }}</div>
-              </template>
-              <template #description>
-                <div class="app-description">
-                  {{ app.initPrompt }}
-                </div>
-              </template>
-            </a-card-meta>
+            <AppCard :app="app" @click="handleViewApp(app.id!, true)" />
             <div class="app-actions">
               <a-button type="link" size="small" @click.stop="handleViewApp(app.id!, true)">查看对话</a-button>
               <a-button
@@ -100,22 +98,20 @@
           <a-card hoverable class="app-card">
             <template #cover>
               <div class="app-cover" @click="handleViewApp(app.id!, true)">
-                <img v-if="app.cover" :src="app.cover" alt="cover" />
+                <img
+                  v-if="app.cover"
+                  :src="getCoverUrl(app.cover)"
+                  alt="cover"
+                  referrerpolicy="no-referrer"
+                  crossorigin="anonymous"
+                  @error="handleImgError"
+                />
                 <div v-else class="app-cover-placeholder">
                   <FileTextOutlined />
                 </div>
               </div>
             </template>
-            <a-card-meta>
-              <template #title>
-                <div class="app-title" @click="handleViewApp(app.id!, true)">{{ app.appName || '未命名应用' }}</div>
-              </template>
-              <template #description>
-                <div class="app-description" @click="handleViewApp(app.id!, true)">
-                  {{ app.initPrompt }}
-                </div>
-              </template>
-            </a-card-meta>
+            <AppCard :app="app" @click="handleViewApp(app.id!, true)" />
             <div class="app-actions">
               <a-button type="link" size="small" @click.stop="handleViewApp(app.id!, true)">查看对话</a-button>
               <a-button
@@ -154,6 +150,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { FolderOutlined, FileTextOutlined, StarOutlined } from '@ant-design/icons-vue'
+import AppCard from '@/components/AppCard.vue'
 import { useUserStore } from '@/stores/user'
 import { addApp, listMyAppVoByPage, listFeaturedAppVoByPage, deleteApp } from '@/api/appController'
 
@@ -303,6 +300,36 @@ onMounted(() => {
   fetchMyApps()
   fetchFeaturedApps()
 })
+
+// 规范化封面图链接，兼容 GitHub 仓库图片直链
+const getCoverUrl = (url?: string) => {
+  if (!url) return ''
+  let u = url.trim()
+  // 将 github.com/.../blob/... 转为 raw.githubusercontent.com/.../...
+  if (u.includes('github.com') && !u.includes('raw.githubusercontent.com')) {
+    if (u.includes('/blob/')) {
+      u = u
+        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('http://github.com/', 'https://raw.githubusercontent.com/')
+        .replace('/blob/', '/')
+      return u
+    }
+    // 对非 blob 链接，补充 ?raw=1 以获取原始文件
+    if (!/[?&]raw=1\b/.test(u)) {
+      u += (u.includes('?') ? '&' : '?') + 'raw=1'
+    }
+  }
+  return u
+}
+
+// 图片加载失败时回退到默认图
+const handleImgError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  if (!img) return
+  // 防止无限触发
+  img.onerror = null
+  img.src = '/logo.png'
+}
 </script>
 
 <style scoped>

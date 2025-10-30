@@ -11,10 +11,20 @@
           <a-input v-model:value="form.appName" placeholder="请输入应用名称" />
         </a-form-item>
 
-        <a-form-item label="应用封面">
-          <a-input v-model:value="form.cover" placeholder="请输入封面图URL" />
+        <a-form-item
+          v-if="isAdmin"
+          label="应用封面"
+          name="cover"
+          extra="支持图片链接，建议尺寸：400x300"
+        >
+          <a-input v-model:value="form.cover" placeholder="请输入封面图片链接" />
           <div v-if="form.cover" class="cover-preview">
-            <img :src="form.cover" alt="cover" @error="handleImageError" />
+            <a-image
+              :src="form.cover"
+              :width="200"
+              :height="150"
+              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            />
           </div>
         </a-form-item>
 
@@ -49,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { useUserStore } from '@/stores/user'
@@ -71,6 +81,9 @@ const form = reactive({
   codeGenType: '',
   deployKey: '',
 })
+
+// 是否管理员
+const isAdmin = computed(() => userStore.loginUser?.userRole === 'admin')
 
 // 获取应用信息
 const fetchAppInfo = async () => {
@@ -117,6 +130,7 @@ const handleSubmit = async () => {
     const { data } = await updateApp({
       id: form.id,
       appName: form.appName,
+      cover: form.cover
     })
 
     if (data?.code === 0) {
@@ -137,11 +151,7 @@ const handleCancel = () => {
   router.back()
 }
 
-// 图片加载错误
-const handleImageError = (e: Event) => {
-  const target = e.target as HTMLImageElement
-  target.style.display = 'none'
-}
+// a-image 已内置 fallback，不再需要错误处理
 
 onMounted(() => {
   fetchAppInfo()
