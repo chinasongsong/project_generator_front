@@ -1,26 +1,47 @@
 <template>
   <div class="home-view">
+    <!-- 主页 SLOGAN -->
+    <div class="hero">
+      <h1 class="hero-title">AI 应用生成平台</h1>
+      <p class="hero-subtitle">一句话轻松创建网站应用</p>
+    </div>
+
     <!-- 用户提示词输入框 -->
     <div class="prompt-section">
       <div class="prompt-container">
-        <a-input
-          v-model:value="promptText"
-          placeholder="输入你的应用需求，例如：创建一个在线图书管理系统..."
-          size="large"
-          :disabled="loading"
-          @pressEnter="handleCreateApp"
-        >
-          <template #suffix>
+        <div class="prompt-input-wrapper">
+          <a-textarea
+            v-model:value="promptText"
+            placeholder="输入你的应用需求，例如：创建一个在线图书管理系统..."
+            :rows="4"
+            :disabled="loading"
+            @keydown.enter.prevent="handleCreateApp"
+          />
+          <a-tooltip title="发送">
             <a-button
+              class="send-button"
               type="primary"
               :loading="loading"
               @click="handleCreateApp"
               :disabled="!promptText.trim()"
             >
-              创建应用
+              <template #icon><ArrowRightOutlined /></template>
             </a-button>
-          </template>
-        </a-input>
+          </a-tooltip>
+        </div>
+
+        <!-- 快捷提示词示例 -->
+        <div class="quick-prompts">
+          <div
+            v-for="(item, idx) in quickPrompts"
+            :key="idx"
+            class="quick-prompt-item"
+            @click="applyQuickPrompt(item.content)"
+          >
+            <div class="qp-title">{{ item.title }}</div>
+            <div class="qp-content">{{ item.preview }}</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -149,7 +170,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { FolderOutlined, FileTextOutlined, StarOutlined } from '@ant-design/icons-vue'
+import { FolderOutlined, FileTextOutlined, StarOutlined, ArrowRightOutlined } from '@ant-design/icons-vue'
 import AppCard from '@/components/AppCard.vue'
 import { useUserStore } from '@/stores/user'
 import { addApp, listMyAppVoByPage, listFeaturedAppVoByPage, deleteApp } from '@/api/appController'
@@ -160,6 +181,42 @@ const userStore = useUserStore()
 // 提示词输入
 const promptText = ref('')
 const loading = ref(false)
+
+// 快捷提示词
+const quickPrompts = ref([
+  {
+    title: '企业官网（响应式）',
+    content:
+      '请为一家名为“星航科技”的AI解决方案公司生成响应式企业官网，包含首页、产品与解决方案、成功案例、关于我们、联系我们等5个页面；顶部有固定导航与LOGO，主色为深蓝与青色渐变；首页有大幅Hero区、客户Logo墙、优势卡片与CTA按钮；代码需语义化，含基础SEO元信息。',
+    preview:
+      '星航科技AI企业官网：5页、深蓝-青色渐变、固定导航、Hero、Logo墙、优势卡片、CTA、语义化+SEO。',
+  },
+  {
+    title: '在线课程着陆页',
+    content:
+      '生成一个推广“前端工程化”在线课程的单页着陆页，包含课程亮点、讲师介绍、学员评价、常见问题、价格与报名区域；支持移动端；加入倒计时组件和回到顶部；主色为紫色系渐变，按钮突出对比；使用整洁卡片与图标网格展示要点。',
+    preview:
+      '课程着陆页：亮点/讲师/评价/FAQ/价格报名，紫色渐变，倒计时+回到顶部，移动端友好。',
+  },
+  {
+    title: '科技博客（暗色主题）',
+    content:
+      '创建一个暗色主题的技术博客模板，包含首页文章列表、文章详情、关于、标签归档；首页卡片式列表，支持标签过滤与分页；详情支持代码高亮和目录锚点；头部粘性导航，底部备案位；采用灰黑+蓝绿点缀的赛博风格。',
+    preview:
+      '暗色科技博客：列表/详情/关于/标签，代码高亮与目录锚点，赛博配色与粘性导航。',
+  },
+  {
+    title: 'SaaS 仪表盘',
+    content:
+      '生成一个SaaS业务管理仪表盘，包含数据总览（折线/柱状/饼图）、用户列表、订单管理、设置页面；支持侧边导航与顶部搜索；主题明亮简洁，图表区留白合理；组件模块化，表格含筛选与分页；自适应布局。',
+    preview:
+      'SaaS仪表盘：总览图表、用户/订单/设置，侧边栏+顶部搜索，明亮风格，自适应布局。',
+  },
+])
+
+const applyQuickPrompt = (text: string) => {
+  promptText.value = text
+}
 
 // 我的应用分页
 const myApps = ref<API.AppVO[]>([])
@@ -214,7 +271,9 @@ const handleViewApp = (appId: number, isView = false) => {
 
 // 查看部署的应用作品
 const handleViewDeployedApp = (deployKey: string) => {
-  const deployUrl = `http://localhost:8088/${deployKey}`
+  const deployDomain = (import.meta as any).env?.VITE_DEPLOY_DOMAIN || 'http://localhost:8088'
+  const base = String(deployDomain).replace(/\/$/, '')
+  const deployUrl = `${base}/${deployKey}`
   window.open(deployUrl, '_blank')
 }
 
@@ -334,9 +393,34 @@ const handleImgError = (e: Event) => {
 
 <style scoped>
 .home-view {
+  /* 让主页内容打破布局内边距，铺满可见宽度以展示渐变背景 */
+  margin: 0 -24px;
   padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  /* 浅色系渐变背景：顶部纯白，向下过渡到极浅的蓝灰，衔接白色顶部栏 */
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 18%, #f7fafc 45%, #f3f6fb 70%, #eef4ff 100%);
+  color: #1f2937;
+}
+
+.hero {
+  text-align: center;
+  padding: 48px 16px 24px;
+}
+
+.hero-title {
+  font-size: 42px;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 35%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .prompt-section {
@@ -344,16 +428,83 @@ const handleImgError = (e: Event) => {
 }
 
 .prompt-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.prompt-container :deep(.ant-input-affix-wrapper) {
-  border-radius: 8px;
+.prompt-input-wrapper {
+  position: relative;
 }
 
-.prompt-container :deep(.ant-input) {
-  padding-right: 120px;
+.prompt-input-wrapper :deep(textarea.ant-input) {
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 120px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  border-radius: 16px;
+  padding: 18px 64px 18px 20px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+  background: #ffffff;
+  color: #1f2937;
+  transition: box-shadow 0.25s ease, background 0.25s ease, transform 0.1s ease;
+}
+
+.prompt-input-wrapper :deep(textarea.ant-input:hover) {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(59, 130, 246, 0.35) inset;
+  background: #ffffff;
+}
+
+.prompt-input-wrapper :deep(textarea.ant-input:focus) {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6) inset, 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.send-button {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-prompts {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.quick-prompt-item {
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.quick-prompt-item:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.qp-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.qp-content {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
 }
 
 .apps-section {
@@ -364,7 +515,7 @@ const handleImgError = (e: Event) => {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 24px;
-  color: #1890ff;
+  color: #7dd3fc;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -383,7 +534,7 @@ const handleImgError = (e: Event) => {
 .app-cover {
   height: 120px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: rgba(0, 0, 0, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,7 +561,7 @@ const handleImgError = (e: Event) => {
 
 .app-description {
   font-size: 14px;
-  color: #666;
+  color: #6b7280;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -473,6 +624,6 @@ const handleImgError = (e: Event) => {
 
 .app-title:hover,
 .app-description:hover {
-  color: #1890ff;
+  color: #2563eb;
 }
 </style>

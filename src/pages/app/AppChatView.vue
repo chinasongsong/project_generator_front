@@ -193,6 +193,8 @@ const messagesRef = ref<HTMLElement | null>(null)
 
 // 网站URL
 const websiteUrl = ref('')
+// 预览域名（用于展示生成的静态站点），优先读取环境变量
+const PREVIEW_DOMAIN = ((import.meta as any).env?.VITE_PREVIEW_DOMAIN as string) || (request.defaults.baseURL || '')
 
 // 部署状态
 const deploying = ref(false)
@@ -490,7 +492,8 @@ const sendMessageToAI = async (userMsg: string) => {
 
       // 更新预览URL
       if (appInfo.value?.codeGenType) {
-        websiteUrl.value = `${baseURL}/static/${appInfo.value.codeGenType}_${appId.value}/`
+        const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
+        websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
       }
 
       // 清空流式内容
@@ -549,7 +552,8 @@ const sendMessageToAI = async (userMsg: string) => {
 
           // 更新预览
           if (appInfo.value?.codeGenType) {
-            websiteUrl.value = `${request.defaults.baseURL || 'http://localhost:8123/api'}/static/${appInfo.value.codeGenType}_${appId.value}/`
+            const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
+            websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
           }
 
           streamContent.value = ''
@@ -736,7 +740,8 @@ onMounted(() => {
 }
 
 .chat-area {
-  flex: 1;
+  flex: 0 0 40%; /* 左侧 2 */
+  max-width: 40%;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e8e8e8;
@@ -746,12 +751,12 @@ onMounted(() => {
 .messages-area {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
-  background: #f5f5f5;
+  padding: 12px; /* 收紧间距 */
+  background: #f7f8fa;
 }
 
 .message-item {
-  margin-bottom: 16px;
+  margin-bottom: 12px; /* 收紧间距 */
 }
 
 .message-item.user {
@@ -765,9 +770,9 @@ onMounted(() => {
 }
 
 .message-content {
-  max-width: 70%;
+  max-width: 78%;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
 }
 
@@ -794,9 +799,9 @@ onMounted(() => {
 .message-text {
   flex: 1;
   background: #fff;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   word-wrap: break-word;
   word-break: break-word;
 }
@@ -954,13 +959,14 @@ onMounted(() => {
 }
 
 .input-area {
-  padding: 16px;
+  padding: 12px; /* 收紧间距 */
   background: #fff;
   border-top: 1px solid #e8e8e8;
 }
 
 .preview-area {
-  width: 50%;
+  flex: 0 0 60%; /* 右侧 3 */
+  max-width: 60%;
   background: #fff;
   display: flex;
   flex-direction: column;
