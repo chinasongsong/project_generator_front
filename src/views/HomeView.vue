@@ -25,7 +25,9 @@
               @click="handleCreateApp"
               :disabled="!promptText.trim()"
             >
-              <template #icon><ArrowRightOutlined /></template>
+              <template #icon>
+                <ArrowRightOutlined/>
+              </template>
             </a-button>
           </a-tooltip>
         </div>
@@ -48,38 +50,33 @@
     <!-- 我的应用分页列表 -->
     <div class="apps-section">
       <h2 class="section-title">
-        <FolderOutlined /> 我的应用
+        <FolderOutlined/>
+        我的应用
       </h2>
       <a-row :gutter="[16, 16]">
         <a-col :span="6" v-for="app in myApps" :key="app.id">
           <a-card hoverable class="app-card">
             <template #cover>
-              <div class="app-cover">
-                <img
-                  v-if="app.cover"
-                  :src="getCoverUrl(app.cover)"
-                  alt="cover"
-                  referrerpolicy="no-referrer"
-                  crossorigin="anonymous"
-                  @error="handleImgError"
-                />
-                <div v-else class="app-cover-placeholder">
-                  <FileTextOutlined />
-                </div>
-              </div>
+              <AppCover :cover="app.cover || ''" @click="handleViewApp(app.id, true)">
+                <template #placeholder>
+                  <FileTextOutlined/>
+                </template>
+              </AppCover>
             </template>
-            <AppCard :app="app" @click="handleViewApp(app.id!, true)" />
+            <AppCard :app="app" @click="handleViewApp(app.id, true)"/>
             <div class="app-actions">
-              <a-button type="link" size="small" @click.stop="handleViewApp(app.id!, true)">查看对话</a-button>
+              <a-button type="link" size="small" @click.stop="handleViewApp(app.id, true)">
+                查看对话
+              </a-button>
               <a-button
                 v-if="app.deployKey"
                 type="link"
                 size="small"
-                @click.stop="handleViewDeployedApp(app.deployKey!)"
+                @click.stop="handleViewDeployedApp(app.deployKey)"
               >
                 查看作品
               </a-button>
-              <a-button type="link" size="small" @click.stop="handleEditApp(app.id!)">编辑</a-button>
+              <a-button type="link" size="small" @click.stop="handleEditApp(app.id)">编辑</a-button>
               <a-popconfirm
                 title="确认删除此应用吗？"
                 @confirm="handleDeleteApp(app.id!)"
@@ -91,7 +88,7 @@
         </a-col>
       </a-row>
       <div v-if="myApps.length === 0" class="empty-state">
-        <a-empty description="暂无应用，开始创建你的第一个应用吧！" />
+        <a-empty description="暂无应用，开始创建你的第一个应用吧！"/>
       </div>
       <div class="pagination-wrapper">
         <a-pagination
@@ -107,34 +104,29 @@
       </div>
     </div>
 
-    <a-divider />
+    <a-divider/>
 
     <!-- 精选应用分页列表 -->
     <div class="apps-section">
       <h2 class="section-title">
-        <StarOutlined /> 精选应用
+        <StarOutlined/>
+        精选应用
       </h2>
       <a-row :gutter="[16, 16]">
         <a-col :span="6" v-for="app in featuredApps" :key="app.id">
           <a-card hoverable class="app-card">
             <template #cover>
-              <div class="app-cover" @click="handleViewApp(app.id!, true)">
-                <img
-                  v-if="app.cover"
-                  :src="getCoverUrl(app.cover)"
-                  alt="cover"
-                  referrerpolicy="no-referrer"
-                  crossorigin="anonymous"
-                  @error="handleImgError"
-                />
-                <div v-else class="app-cover-placeholder">
-                  <FileTextOutlined />
-                </div>
-              </div>
+              <AppCover :cover="app.cover || ''" @click="handleViewApp(app.id!, true)">
+                <template #placeholder>
+                  <FileTextOutlined/>
+                </template>
+              </AppCover>
             </template>
-            <AppCard :app="app" @click="handleViewApp(app.id!, true)" />
+            <AppCard :app="app" @click="handleViewApp(app.id!, true)"/>
             <div class="app-actions">
-              <a-button type="link" size="small" @click.stop="handleViewApp(app.id!, true)">查看对话</a-button>
+              <a-button type="link" size="small" @click.stop="handleViewApp(app.id!, true)">
+                查看对话
+              </a-button>
               <a-button
                 v-if="app.deployKey"
                 type="link"
@@ -148,7 +140,7 @@
         </a-col>
       </a-row>
       <div v-if="featuredApps.length === 0" class="empty-state">
-        <a-empty description="暂无精选应用" />
+        <a-empty description="暂无精选应用"/>
       </div>
       <div class="pagination-wrapper">
         <a-pagination
@@ -167,13 +159,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { FolderOutlined, FileTextOutlined, StarOutlined, ArrowRightOutlined } from '@ant-design/icons-vue'
+import {ref, onMounted} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {
+  FolderOutlined,
+  FileTextOutlined,
+  StarOutlined,
+  ArrowRightOutlined
+} from '@ant-design/icons-vue'
 import AppCard from '@/components/AppCard.vue'
-import { useUserStore } from '@/stores/user'
-import { addApp, listMyAppVoByPage, listFeaturedAppVoByPage, deleteApp } from '@/api/appController'
+import AppCover from '@/components/AppCover.vue'
+import {useUserStore} from '@/stores/user'
+import {addApp, listMyAppVoByPage, listFeaturedAppVoByPage, deleteApp} from '@/api/appController'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -245,7 +243,7 @@ const handleCreateApp = async () => {
 
   try {
     loading.value = true
-    const { data } = await addApp({
+    const {data} = await addApp({
       initPrompt: promptText.value.trim(),
     })
 
@@ -285,7 +283,7 @@ const handleEditApp = (appId: number) => {
 // 删除应用
 const handleDeleteApp = async (appId: number) => {
   try {
-    const { data } = await deleteApp({ id: appId })
+    const {data} = await deleteApp({id: appId})
     if (data?.code === 0) {
       message.success('删除成功')
       fetchMyApps()
@@ -306,7 +304,7 @@ const fetchMyApps = async () => {
   }
 
   try {
-    const { data } = await listMyAppVoByPage({
+    const {data} = await listMyAppVoByPage({
       pageNum: myPageNum.value,
       pageSize: myPageSize.value,
     })
@@ -332,7 +330,7 @@ const onMyPageSizeChange = (_: number, size: number) => {
 // 获取精选应用列表
 const fetchFeaturedApps = async () => {
   try {
-    const { data } = await listFeaturedAppVoByPage({
+    const {data} = await listFeaturedAppVoByPage({
       pageNum: featuredPageNum.value,
       pageSize: featuredPageSize.value,
     })
@@ -360,35 +358,7 @@ onMounted(() => {
   fetchFeaturedApps()
 })
 
-// 规范化封面图链接，兼容 GitHub 仓库图片直链
-const getCoverUrl = (url?: string) => {
-  if (!url) return ''
-  let u = url.trim()
-  // 将 github.com/.../blob/... 转为 raw.githubusercontent.com/.../...
-  if (u.includes('github.com') && !u.includes('raw.githubusercontent.com')) {
-    if (u.includes('/blob/')) {
-      u = u
-        .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-        .replace('http://github.com/', 'https://raw.githubusercontent.com/')
-        .replace('/blob/', '/')
-      return u
-    }
-    // 对非 blob 链接，补充 ?raw=1 以获取原始文件
-    if (!/[?&]raw=1\b/.test(u)) {
-      u += (u.includes('?') ? '&' : '?') + 'raw=1'
-    }
-  }
-  return u
-}
-
-// 图片加载失败时回退到默认图
-const handleImgError = (e: Event) => {
-  const img = e.target as HTMLImageElement
-  if (!img) return
-  // 防止无限触发
-  img.onerror = null
-  img.src = '/logo.png'
-}
+// 封面展示逻辑已抽象到 AppCover 组件
 </script>
 
 <style scoped>

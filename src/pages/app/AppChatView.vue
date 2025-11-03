@@ -132,6 +132,7 @@
         </div>
       </div>
     </div>
+    <AppDetailModal :open="appDetailVisible" :app="appInfo" @update:open="(v:boolean)=> appDetailVisible = v" />
   </div>
 </template>
 
@@ -149,7 +150,7 @@ import {
   SendOutlined,
   ExportOutlined,
 } from '@ant-design/icons-vue'
-import { getAppById, getAppVoById, deployApp, charToGenerateApp, deleteApp, updateApp } from '@/api/appController'
+import { getAppById, deployApp } from '@/api/appController'
 import { useUserStore } from '@/stores/user'
 import request from '@/request'
 import hljs from 'highlight.js/lib/core'
@@ -637,8 +638,7 @@ const formatCodeGenType = (type?: string) => {
 
 // 显示应用详情
 const showAppDetail = () => {
-  // 这里可以打开详情弹窗或者导航到详情页
-  message.info('应用详情功能')
+  appDetailVisible.value = true
 }
 
 // 下载代码
@@ -699,6 +699,14 @@ watch(streamContent, () => {
 onMounted(() => {
   fetchAppInfo()
 })
+</script>
+
+<script lang="ts">
+export default {
+  components: {
+    AppDetailModal: () => import('@/components/AppDetailModal.vue'),
+  },
+}
 </script>
 
 <style scoped>
