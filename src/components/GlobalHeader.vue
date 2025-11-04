@@ -66,6 +66,7 @@ import {
   BookOutlined,
   TeamOutlined,
   AppstoreOutlined,
+  MessageOutlined,
 } from '@ant-design/icons-vue'
 
 const userStore = useUserStore()
@@ -116,6 +117,12 @@ const originItems = [
     icon: () => h(AppstoreOutlined),
     label: '应用管理',
     title: '应用管理',
+  },
+  {
+    key: '/admin/chat-histories',
+    icon: () => h(MessageOutlined),
+    label: '对话管理',
+    title: '对话管理',
   },
 ]
 

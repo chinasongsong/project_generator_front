@@ -4,7 +4,9 @@
     <div class="chat-header">
       <div class="header-left">
         <a-button type="text" @click="handleBack">
-          <template #icon><ArrowLeftOutlined /></template>
+          <template #icon>
+            <ArrowLeftOutlined/>
+          </template>
         </a-button>
         <h2 class="app-title">{{ appInfo?.appName || '未命名应用' }}</h2>
         <a-tag v-if="appInfo?.codeGenType" color="blue" class="code-gen-type-tag">
@@ -13,7 +15,9 @@
       </div>
       <div class="header-right">
         <a-button type="default" @click="showAppDetail">
-          <template #icon><InfoCircleOutlined /></template>
+          <template #icon>
+            <InfoCircleOutlined/>
+          </template>
           应用详情
         </a-button>
         <a-button
@@ -23,7 +27,9 @@
           :loading="downloading"
           :disabled="!isOwner"
         >
-          <template #icon><DownloadOutlined /></template>
+          <template #icon>
+            <DownloadOutlined/>
+          </template>
           下载代码
         </a-button>
         <a-button
@@ -32,7 +38,9 @@
           :disabled="!websiteUrl"
           @click="handleDeploy"
         >
-          <template #icon><CloudUploadOutlined /></template>
+          <template #icon>
+            <CloudUploadOutlined/>
+          </template>
           部署
         </a-button>
       </div>
@@ -44,9 +52,15 @@
       <div class="chat-area">
         <!-- 消息区域 -->
         <div class="messages-area" ref="messagesRef">
+          <!-- 加载更多按钮 -->
+          <div v-if="hasMoreHistory" class="load-more-container">
+            <a-button type="link" @click="loadMoreHistory" :loading="loadingHistory">
+              加载更多历史消息
+            </a-button>
+          </div>
           <div
             v-for="(message, index) in messages"
-            :key="index"
+            :key="`${message.id || index}-${message.createTime || index}`"
             :class="['message-item', message.role]"
           >
             <div class="message-content">
@@ -94,7 +108,9 @@
                 :loading="streaming"
                 :disabled="streaming || !isOwner"
               >
-                <template #icon><SendOutlined /></template>
+                <template #icon>
+                  <SendOutlined/>
+                </template>
               </a-button>
             </div>
           </div>
@@ -108,7 +124,9 @@
             <h3>生成后的网页展示</h3>
             <div class="preview-actions">
               <a-button v-if="websiteUrl" type="link" @click="handleOpenInNewTab">
-                <template #icon><ExportOutlined /></template>
+                <template #icon>
+                  <ExportOutlined/>
+                </template>
                 新窗口打开
               </a-button>
             </div>
@@ -132,7 +150,8 @@
         </div>
       </div>
     </div>
-    <AppDetailModal :open="appDetailVisible" :app="appInfo" @update:open="(v:boolean)=> appDetailVisible = v" />
+    <AppDetailModal :open="appDetailVisible" :app="appInfo"
+                    @update:open="(v:boolean)=> appDetailVisible = v"/>
   </div>
 </template>
 
@@ -150,8 +169,9 @@ import {
   SendOutlined,
   ExportOutlined,
 } from '@ant-design/icons-vue'
-import { getAppById, deployApp } from '@/api/appController'
-import { useUserStore } from '@/stores/user'
+import {getAppById, deployApp} from '@/api/appController'
+import {getMessages} from '@/api/chatHistoryController'
+import {useUserStore} from '@/stores/user'
 import request from '@/request'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
@@ -182,7 +202,7 @@ const appId = ref<string>(String(route.params.id))
 const appInfo = ref<API.AppVO | null>(null)
 
 // 消息列表
-const messages = reactive<Array<{ role: 'user' | 'assistant'; content: string }>>([])
+const messages = reactive<Array<{ id?: number; role: 'user' | 'assistant'; content: string; createTime?: string }>>([])
 
 // 输入消息
 const inputMessage = ref('')
@@ -191,6 +211,12 @@ const inputMessage = ref('')
 const streaming = ref(false)
 const streamContent = ref('')
 const messagesRef = ref<HTMLElement | null>(null)
+
+// 历史消息相关
+const loadingHistory = ref(false)
+const hasMoreHistory = ref(false)
+const cursorTime = ref<string | undefined>(undefined)
+const PAGE_SIZE = 1
 
 // 网站URL
 const websiteUrl = ref('')
@@ -256,7 +282,7 @@ const formatMessage = (content: string, isStreaming: boolean = false): string =>
 
         try {
           if (lang && hljs.getLanguage(lang)) {
-            highlightedCode = hljs.highlight(code, { language: lang }).value
+            highlightedCode = hljs.highlight(code, {language: lang}).value
           } else {
             highlightedCode = escapeHtml(code)
           }
@@ -281,7 +307,7 @@ const formatMessage = (content: string, isStreaming: boolean = false): string =>
 
       try {
         if (lang && hljs.getLanguage(lang)) {
-          highlightedCode = hljs.highlight(code, { language: lang }).value
+          highlightedCode = hljs.highlight(code, {language: lang}).value
         } else if (lang !== '') {
           const autoDetected = hljs.highlightAuto(code)
           highlightedCode = autoDetected.value
@@ -320,7 +346,7 @@ const formatMessage = (content: string, isStreaming: boolean = false): string =>
       // 添加代码块容器
       const completeIndicator = block.isComplete ? '' : '<span class="streaming-indicator">▋</span>'
       const langDisplay = block.lang || 'plain text'
-      
+
       result += `<div class="code-block-wrapper ${block.isComplete ? '' : 'code-block-streaming'}">
         <div class="code-block-header">
           <span class="code-lang">${langDisplay}${completeIndicator}</span>
@@ -366,17 +392,132 @@ const copyCode = (btn: HTMLElement) => {
   }
 }
 
+// 加载对话历史消息
+const loadChatHistory = async (isLoadMore: boolean = false) => {
+  try {
+    loadingHistory.value = true
+    const params: API.getMessagesParams = {
+      appId: appId.value,
+      pageSize: PAGE_SIZE,
+    }
+
+    // 如果是要加载更多，传入游标时间
+    if (isLoadMore && cursorTime.value) {
+      params.cursorTime = cursorTime.value
+    }
+
+    const {data} = await getMessages(params)
+
+    if (data?.code === 0 && data.data?.records) {
+      const historyMessages = data.data.records
+
+      // 将历史消息转换为前端格式，并按时间升序排序
+      const formattedMessages = historyMessages
+        .filter((msg) => msg.message && msg.messageType)
+        .map((msg) => ({
+          id: msg.id,
+          role: (msg.messageType === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: msg.message || null,
+          createTime: msg.createTime,
+        }))
+        .sort((a, b) => {
+          // 按创建时间升序排序
+          const timeA = a.createTime ? new Date(a.createTime).getTime() : 0
+          const timeB = b.createTime ? new Date(b.createTime).getTime() : 0
+          return timeA - timeB
+        })
+
+      if (isLoadMore) {
+        // 加载更多：插入到列表前面
+        messages.unshift(...formattedMessages)
+      } else {
+        // 首次加载：清空并添加
+        messages.length = 0
+        messages.push(...formattedMessages)
+      }
+
+      // 更新游标：使用当前消息列表中最早的消息创建时间作为下次查询的游标
+      // 首次加载或加载更多后，都使用当前列表中最早的消息时间作为游标
+      if (formattedMessages.length > 0) {
+        const earliestTime = formattedMessages[0].createTime
+        if (earliestTime) {
+          // 如果是加载更多，消息已经插入到列表前面，所以需要找到当前列表中最早的消息时间
+          if (isLoadMore) {
+            // 查找当前messages列表中最小的createTime
+            const allMessages = [...messages]
+            const earliestMsg = allMessages.reduce((earliest, msg) => {
+              if (!msg.createTime) return earliest
+              if (!earliest || !earliest.createTime) return msg
+              const msgTime = new Date(msg.createTime).getTime()
+              const earliestTime = new Date(earliest.createTime).getTime()
+              return msgTime < earliestTime ? msg : earliest
+            }, allMessages[0])
+            cursorTime.value = earliestMsg?.createTime || earliestTime
+          } else {
+            cursorTime.value = earliestTime
+          }
+        }
+      }
+
+      // 判断是否还有更多消息：如果返回的消息数量等于页大小，可能还有更多
+      hasMoreHistory.value = historyMessages.length >= PAGE_SIZE
+
+      // 如果不是加载更多，滚动到底部
+      if (!isLoadMore) {
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }
+    }
+  } catch (e) {
+    message.error('加载历史消息失败，请检查网络连接')
+  } finally {
+    loadingHistory.value = false
+  }
+}
+
+// 加载更多历史消息
+const loadMoreHistory = async () => {
+  // 记录当前滚动位置
+  const scrollContainer = messagesRef.value
+  const previousScrollHeight = scrollContainer?.scrollHeight || 0
+
+  await loadChatHistory(true)
+
+  // 加载完成后，恢复滚动位置（保持在加载前的位置）
+  nextTick(() => {
+    if (scrollContainer) {
+      const newScrollHeight = scrollContainer.scrollHeight
+      const scrollDiff = newScrollHeight - previousScrollHeight
+      scrollContainer.scrollTop = scrollDiff
+    }
+  })
+}
+
 // 获取应用信息
 const fetchAppInfo = async () => {
   try {
-    const { data } = await getAppById({ id: appId.value })
+    const {data} = await getAppById({id: appId.value})
     if (data?.code === 0) {
       appInfo.value = data.data
-      // 检查是否有view参数，如果有则不自动发送消息
-      const isViewMode = route.query.view === '1' || route.query.view === 1
-      // 如果有初始提示词且不是查看模式，自动发送
-      if (appInfo.value?.initPrompt && messages.length === 0 && !isViewMode) {
+
+      // 加载对话历史
+      await loadChatHistory(false)
+
+      // 检查是否需要自动发送初始消息
+      // 只有是自己的app且没有对话历史时，才自动发送initPrompt
+      if (isOwner.value && appInfo.value?.initPrompt && messages.length === 0) {
         await handleSendInitialMessage()
+      }
+
+      // 如果app有代码生成类型（说明已经生成过代码），且存在对话历史，则展示对应的网站
+      // 只要有对话历史就尝试显示预览，不限制消息数量
+      if (appInfo.value?.codeGenType && messages.length > 0) {
+        const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
+        websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
+        // 重置 iframe 加载状态
+        iframeLoading.value = true
+        iframeError.value = false
       }
     } else {
       message.error(data?.message || '获取应用信息失败')
@@ -456,7 +597,7 @@ const sendMessageToAI = async (userMsg: string) => {
         if (content !== undefined && content !== null) {
           fullContent += content
           streamContent.value = fullContent
-          
+
           // 立即滚动到底部
           nextTick(() => {
             scrollToBottom()
@@ -496,6 +637,9 @@ const sendMessageToAI = async (userMsg: string) => {
         const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
         websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
       }
+
+      // 更新hasMoreHistory标志，因为新增了消息，可能还有更多历史消息
+      hasMoreHistory.value = true
 
       // 清空流式内容
       streamContent.value = ''
@@ -544,7 +688,7 @@ const sendMessageToAI = async (userMsg: string) => {
         if (!streamCompleted && fullContent.trim()) {
           streamCompleted = true
           streaming.value = false
-          
+
           // 保存消息
           messages.push({
             role: 'assistant',
@@ -556,6 +700,9 @@ const sendMessageToAI = async (userMsg: string) => {
             const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
             websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
           }
+
+          // 更新hasMoreHistory标志
+          hasMoreHistory.value = true
 
           streamContent.value = ''
         }
@@ -575,13 +722,13 @@ const handleError = (error: unknown) => {
   console.error('生成代码失败：', error)
   streaming.value = false
   streamContent.value = ''
-  
+
   // 添加错误消息
   messages.push({
     role: 'assistant',
     content: '抱歉，生成过程中出现了错误，请重试。',
   })
-  
+
   message.error('生成失败，请重试')
 }
 
@@ -598,7 +745,7 @@ const scrollToBottom = () => {
 const handleDeploy = async () => {
   try {
     deploying.value = true
-    const { data } = await deployApp({
+    const {data} = await deployApp({
       appId: appId.value,
     })
 
@@ -1085,6 +1232,24 @@ export default {
 .messages-area::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* 垂直居中，避免文字偏移 */
+  padding: 16px 12px; /* 上下内边距稍大，提升点击区域 */
+  background: transparent; /* 完全透明底色 */
+  cursor: pointer; /* 点击指针，提示可交互 */
+}
+
+
+/* hover 轻微反馈（可选，提升体验） */
+.load-more-container:hover {
+  color: #096dd9; /* hover时加深颜色 */
+}
+
+
 
 @media (max-width: 768px) {
   .chat-content {
