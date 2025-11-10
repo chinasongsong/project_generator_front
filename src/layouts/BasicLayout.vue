@@ -14,9 +14,21 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalFooter from '@/components/GlobalFooter.vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+
+// 应用启动时恢复用户登录状态
+onMounted(async () => {
+  // 如果 store 中没有用户信息，尝试从后端恢复（会先检查 localStorage，然后验证后端 session）
+  if (!userStore.loginUser) {
+    await userStore.fetchLoginUser()
+  }
+})
 </script>
 
 <style scoped>

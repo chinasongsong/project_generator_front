@@ -1,9 +1,24 @@
 import { defineStore } from 'pinia'
 import { getLoginUser } from '@/api/userController'
 
+// 从 localStorage 恢复用户信息的辅助函数
+const getCachedUser = (): API.LoginUserVO | null => {
+  try {
+    const cached = localStorage.getItem('userInfo')
+    if (cached) {
+      return JSON.parse(cached) as API.LoginUserVO
+    }
+  } catch (_) {
+    // 解析失败，清除无效缓存
+    localStorage.removeItem('userInfo')
+  }
+  return null
+}
+
 export const useUserStore = defineStore('user', {
   state: () => ({
-    loginUser: null as API.LoginUserVO | null,
+    // 初始化时从 localStorage 恢复用户信息（用于快速显示，后续会验证后端 session）
+    loginUser: getCachedUser(),
     loading: false as boolean,
   }),
   actions: {
