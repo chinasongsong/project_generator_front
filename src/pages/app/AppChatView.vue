@@ -169,7 +169,7 @@ import {
   SendOutlined,
   ExportOutlined,
 } from '@ant-design/icons-vue'
-import {getAppById, deployApp} from '@/api/appController'
+import {getAppById, deployApp, downloadFileAsZip} from '@/api/appController'
 import {getMessages} from '@/api/chatHistoryController'
 import {useUserStore} from '@/stores/user'
 import request from '@/request'
@@ -789,31 +789,59 @@ const downloadCode = async () => {
   }
   downloading.value = true
   try {
-    const API_BASE_URL = request.defaults.baseURL || ''
-    const url = `${API_BASE_URL}/app/download/${appId.value}`
-    const response = await fetch(url, {
-      method: 'GET',
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      throw new Error(`下载失败: ${response.status}`)
+    // 使用 API 接口下载文件，配置 responseType 为 blob 以处理二进制数据
+    const response = await downloadFileAsZip(
+      { appId: appId.value },
+      {
+        responseType: 'blob',
+      }
+    )
+    
+    // 从响应头中获取文件名
+    // axios 响应头键名通常是小写的
+    const headers = response.headers || {}
+    const contentDisposition = headers['content-disposition'] || headers['Content-Disposition'] || ''
+    let fileName = `app-${appId.value}.zip`
+    
+    if (contentDisposition) {
+      // 解析 Content-Disposition 头，格式：attachment; filename="xxx.zip"
+      // 支持两种格式：filename="xxx.zip" 或 filename=xxx.zip
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        // 移除引号（支持单引号和双引号）
+        fileName = fileNameMatch[1].replace(/^['"]|['"]$/g, '')
+      }
     }
-    // 获取文件名
-    const contentDisposition = response.headers.get('Content-Disposition')
-    const fileName = contentDisposition?.match(/filename="(.+)"/)?.[1] || `app-${appId.value}.zip`
-    // 下载文件
-    const blob = await response.blob()
+    
+    // 获取 blob 数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+    
+    // 创建下载链接并触发下载
     const downloadUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = downloadUrl
     link.download = fileName
+    document.body.appendChild(link)
     link.click()
-    // 清理
+    document.body.removeChild(link)
+    
+    // 清理 URL 对象
     URL.revokeObjectURL(downloadUrl)
     message.success('代码下载成功')
-  } catch (error) {
+  } catch (error: any) {
     console.error('下载失败：', error)
-    message.error('下载失败，请重试')
+    // 如果是 blob 响应但包含错误信息，尝试解析
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text()
+        const errorData = JSON.parse(text)
+        message.error(errorData?.message || '下载失败，请重试')
+      } catch {
+        message.error('下载失败，请重试')
+      }
+    } else {
+      message.error(error?.response?.data?.message || error?.message || '下载失败，请重试')
+    }
   } finally {
     downloading.value = false
   }

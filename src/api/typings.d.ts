@@ -119,15 +119,15 @@ declare namespace API {
   }
 
   type ChatHistoryQueryRequest = {
-    pageNum?: string
-    pageSize?: string
+    pageNum?: number
+    pageSize?: number
     sortField?: string
     sortOrder?: string
-    id?: string
+    id?: number
     messageType?: string
-    appId?: string
-    userId?: string
-    parentId?: string
+    appId?: number
+    userId?: number
+    parentId?: number
     lastCreateTime?: string
   }
 
@@ -144,6 +144,10 @@ declare namespace API {
 
   type DeleteRequest = {
     id?: number
+  }
+
+  type downloadFileAsZipParams = {
+    appId: number
   }
 
   type getAppByIdParams = {
