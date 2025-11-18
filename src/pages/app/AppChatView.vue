@@ -65,8 +65,8 @@
           >
             <div class="message-content">
               <div class="message-avatar">
-                <UserOutlined v-if="message.role === 'user'" />
-                <RobotOutlined v-else />
+                <UserOutlined v-if="message.role === 'user'"/>
+                <RobotOutlined v-else/>
               </div>
               <div class="message-text">
                 <div v-html="formatMessage(message.content, false)"></div>
@@ -76,7 +76,7 @@
           <div v-if="streaming" class="message-item assistant">
             <div class="message-content">
               <div class="message-avatar">
-                <RobotOutlined />
+                <RobotOutlined/>
               </div>
               <div class="message-text">
                 <div v-html="formatMessage(streamContent, true)"></div>
@@ -137,7 +137,7 @@
               <p>网站文件生成完成后将在这里展示</p>
             </div>
             <div v-else-if="streaming" class="preview-loading">
-              <a-spin size="large" />
+              <a-spin size="large"/>
               <p>正在生成网站...</p>
             </div>
             <iframe
@@ -156,9 +156,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import {ref, reactive, onMounted, watch, nextTick, computed} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
 import {
   ArrowLeftOutlined,
   UserOutlined,
@@ -173,6 +173,7 @@ import {getAppById, deployApp} from '@/api/appController'
 import {getMessages} from '@/api/chatHistoryController'
 import {useUserStore} from '@/stores/user'
 import request from '@/request'
+import {getPreviewPath} from '@/utils/previewPath'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
 import typescript from 'highlight.js/lib/languages/typescript'
@@ -496,35 +497,29 @@ const loadMoreHistory = async () => {
 
 // 获取应用信息
 const fetchAppInfo = async () => {
-  try {
-    const {data} = await getAppById({id: appId.value})
-    if (data?.code === 0) {
-      appInfo.value = data.data
 
-      // 加载对话历史
-      await loadChatHistory(false)
+  const {data} = await getAppById({id: appId.value})
+  if (data?.code === 0) {
+    appInfo.value = data.data
 
-      // 检查是否需要自动发送初始消息
-      // 只有是自己的app且没有对话历史时，才自动发送initPrompt
-      if (isOwner.value && appInfo.value?.initPrompt && messages.length === 0) {
-        await handleSendInitialMessage()
-      }
+    // 加载对话历史
+    await loadChatHistory(false)
 
-      // 如果app有代码生成类型（说明已经生成过代码），且存在对话历史，则展示对应的网站
-      // 只要有对话历史就尝试显示预览，不限制消息数量
-      if (appInfo.value?.codeGenType && messages.length > 0) {
-        const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
-        websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
-        // 重置 iframe 加载状态
-        iframeLoading.value = true
-        iframeError.value = false
-      }
-    } else {
-      message.error(data?.message || '获取应用信息失败')
+    // 检查是否需要自动发送初始消息
+    // 只有是自己的app且没有对话历史时，才自动发送initPrompt
+    if (isOwner.value && appInfo.value?.initPrompt && messages.length === 0) {
+      await handleSendInitialMessage()
     }
-  } catch (e) {
-    message.error('获取应用信息失败，请检查网络连接')
+
+    // 如果app有代码生成类型（说明已经生成过代码），且存在对话历史，则展示对应的网站
+    // 只要有对话历史就尝试显示预览，不限制消息数量
+    if (appInfo.value?.codeGenType && messages.length > 0) {
+      websiteUrl.value = getPreviewPath(appInfo.value.codeGenType, appId.value, PREVIEW_DOMAIN)
+    }
+  } else {
+    message.error(data?.message || '获取应用信息失败')
   }
+
 }
 
 // 发送初始消息
@@ -634,8 +629,7 @@ const sendMessageToAI = async (userMsg: string) => {
 
       // 更新预览URL
       if (appInfo.value?.codeGenType) {
-        const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
-        websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
+        websiteUrl.value = getPreviewPath(appInfo.value.codeGenType, appId.value, PREVIEW_DOMAIN)
       }
 
       // 更新hasMoreHistory标志，因为新增了消息，可能还有更多历史消息
@@ -697,8 +691,7 @@ const sendMessageToAI = async (userMsg: string) => {
 
           // 更新预览
           if (appInfo.value?.codeGenType) {
-            const base = String(PREVIEW_DOMAIN).replace(/\/$/, '')
-            websiteUrl.value = `${base}/static/${appInfo.value.codeGenType}_${appId.value}/`
+            websiteUrl.value = getPreviewPath(appInfo.value.codeGenType, appId.value, PREVIEW_DOMAIN)
           }
 
           // 更新hasMoreHistory标志
@@ -1248,7 +1241,6 @@ export default {
 .load-more-container:hover {
   color: #096dd9; /* hover时加深颜色 */
 }
-
 
 
 @media (max-width: 768px) {
