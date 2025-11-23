@@ -59,11 +59,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { useUserStore } from '@/stores/user'
-import { getAppById, getAppVoById, updateApp, deleteApp } from '@/api/appController'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {useUserStore} from '@/stores/user'
+import {getAppVoById, updateApp} from '@/api/appController'
 
 const route = useRoute()
 const router = useRouter()

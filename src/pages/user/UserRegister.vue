@@ -42,10 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { userRegister } from '@/api/userController'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {userRegister} from '@/api/userController'
 
 const router = useRouter()
 

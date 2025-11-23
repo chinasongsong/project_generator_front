@@ -87,9 +87,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import { listUserVoByPage, addUser, updateUser, deleteUser } from '@/api/userController'
+import {onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {addUser, deleteUser, listUserVoByPage, updateUser} from '@/api/userController'
 
 const loading = ref(false)
 const tableData = ref<API.UserVO[]>([])

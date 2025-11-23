@@ -50,12 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
-import { userLogin } from '@/api/userController'
-import { useUserStore } from '@/stores/user'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {LockOutlined, UserOutlined} from '@ant-design/icons-vue'
+import {userLogin} from '@/api/userController'
+import {useUserStore} from '@/stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()

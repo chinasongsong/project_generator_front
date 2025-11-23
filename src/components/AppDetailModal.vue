@@ -40,13 +40,13 @@
       </div>
     </div>
   </a-modal>
-  
+
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue'
-import { computed } from 'vue'
-import { useCover } from '@/composables/useCover'
+import type {PropType} from 'vue'
+import {computed} from 'vue'
+import {useCover} from '@/composables/useCover'
 
 const props = defineProps({
   open: {

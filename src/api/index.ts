@@ -7,6 +7,7 @@ import * as chatHistoryController from './chatHistoryController'
 import * as appController from './appController'
 import * as staticResourceController from './staticResourceController'
 import * as healthyController from './healthyController'
+
 export default {
   userController,
   chatHistoryController,

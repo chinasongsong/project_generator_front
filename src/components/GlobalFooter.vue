@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import {computed} from 'vue'
 
 const currentYear = computed(() => new Date().getFullYear())
 </script>
@@ -44,9 +44,9 @@ const currentYear = computed(() => new Date().getFullYear())
   .global-footer {
     height: 60px;
   }
-  
+
   .copyright {
     font-size: 12px;
   }
 }
-</style> 
+</style>

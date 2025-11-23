@@ -2,23 +2,23 @@
   <a-layout class="basic-layout">
     <!-- 头部导航 -->
     <GlobalHeader />
-    
+
     <!-- 内容区域 -->
     <a-layout-content class="layout-content">
       <RouterView />
     </a-layout-content>
-    
+
     <!-- 底部版权 -->
     <GlobalFooter />
   </a-layout>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { RouterView } from 'vue-router'
+import {onMounted} from 'vue'
+import {RouterView} from 'vue-router'
 import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalFooter from '@/components/GlobalFooter.vue'
-import { useUserStore } from '@/stores/user'
+import {useUserStore} from '@/stores/user'
 
 const userStore = useUserStore()
 
@@ -43,4 +43,4 @@ onMounted(async () => {
   margin-bottom: 70px; /* 为固定底部留出空间 */
   min-height: calc(100vh - 64px - 70px); /* 减去头部和底部的高度 */
 }
-</style> 
+</style>

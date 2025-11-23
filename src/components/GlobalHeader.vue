@@ -52,21 +52,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { type MenuProps, message } from 'ant-design-vue'
-import { useUserStore } from '@/stores/user'
-import { userLogout } from '@/api/userController'
+import {computed, h, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {type MenuProps, message} from 'ant-design-vue'
+import {useUserStore} from '@/stores/user'
+import {userLogout} from '@/api/userController'
 import {
-  LogoutOutlined,
-  UserOutlined,
-  HomeOutlined,
-  FolderOutlined,
-  FileTextOutlined,
-  BookOutlined,
-  TeamOutlined,
   AppstoreOutlined,
+  BookOutlined,
+  FileTextOutlined,
+  FolderOutlined,
+  HomeOutlined,
+  LogoutOutlined,
   MessageOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue'
 
 const userStore = useUserStore()

@@ -159,19 +159,19 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {message} from 'ant-design-vue'
 import {
-  FolderOutlined,
+  ArrowRightOutlined,
   FileTextOutlined,
-  StarOutlined,
-  ArrowRightOutlined
+  FolderOutlined,
+  StarOutlined
 } from '@ant-design/icons-vue'
 import AppCard from '@/components/AppCard.vue'
 import AppCover from '@/components/AppCover.vue'
 import {useUserStore} from '@/stores/user'
-import {addApp, listMyAppVoByPage, listFeaturedAppVoByPage, deleteApp} from '@/api/appController'
+import {addApp, deleteApp, listFeaturedAppVoByPage, listMyAppVoByPage} from '@/api/appController'
 
 const router = useRouter()
 const userStore = useUserStore()

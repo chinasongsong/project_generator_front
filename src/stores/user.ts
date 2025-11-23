@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { getLoginUser } from '@/api/userController'
+import {defineStore} from 'pinia'
+import {getLoginUser} from '@/api/userController'
 
 // 从 localStorage 恢复用户信息的辅助函数
 const getCachedUser = (): API.LoginUserVO | null => {

@@ -1,4 +1,4 @@
-import { computed, type Ref } from 'vue'
+import {computed, type Ref} from 'vue'
 
 /**
  * 处理 GitHub URL，转换为 raw 格式

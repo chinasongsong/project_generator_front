@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { useCover } from '@/composables/useCover'
+import {useCover} from '@/composables/useCover'
 
 const props = defineProps({
   cover: {

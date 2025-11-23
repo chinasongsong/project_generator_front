@@ -156,20 +156,20 @@
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, onMounted, watch, nextTick, computed} from 'vue'
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {message} from 'ant-design-vue'
 import {
   ArrowLeftOutlined,
-  UserOutlined,
-  RobotOutlined,
-  InfoCircleOutlined,
-  DownloadOutlined,
   CloudUploadOutlined,
-  SendOutlined,
+  DownloadOutlined,
   ExportOutlined,
+  InfoCircleOutlined,
+  RobotOutlined,
+  SendOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue'
-import {getAppById, deployApp, downloadFileAsZip} from '@/api/appController'
+import {deployApp, downloadFileAsZip, getAppById} from '@/api/appController'
 import {getMessages} from '@/api/chatHistoryController'
 import {useUserStore} from '@/stores/user'
 import request from '@/request'
@@ -796,13 +796,13 @@ const downloadCode = async () => {
         responseType: 'blob',
       }
     )
-    
+
     // 从响应头中获取文件名
     // axios 响应头键名通常是小写的
     const headers = response.headers || {}
     const contentDisposition = headers['content-disposition'] || headers['Content-Disposition'] || ''
     let fileName = `app-${appId.value}.zip`
-    
+
     if (contentDisposition) {
       // 解析 Content-Disposition 头，格式：attachment; filename="xxx.zip"
       // 支持两种格式：filename="xxx.zip" 或 filename=xxx.zip
@@ -812,10 +812,10 @@ const downloadCode = async () => {
         fileName = fileNameMatch[1].replace(/^['"]|['"]$/g, '')
       }
     }
-    
+
     // 获取 blob 数据
     const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
-    
+
     // 创建下载链接并触发下载
     const downloadUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -824,7 +824,7 @@ const downloadCode = async () => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     // 清理 URL 对象
     URL.revokeObjectURL(downloadUrl)
     message.success('代码下载成功')

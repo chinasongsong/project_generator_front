@@ -124,13 +124,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import {
-  listAppVoByPageAdmin,
-  editAppByAdmin,
-  deleteAppByAdmin,
-} from '@/api/appController'
+import {onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {deleteAppByAdmin, editAppByAdmin, listAppVoByPageAdmin,} from '@/api/appController'
 
 const loading = ref(false)
 const tableData = ref<API.AppVO[]>([])

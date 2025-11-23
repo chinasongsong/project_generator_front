@@ -68,9 +68,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import { listChatHistoryVoByPageAdmin } from '@/api/chatHistoryController'
+import {onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {listChatHistoryVoByPageAdmin} from '@/api/chatHistoryController'
 import request from '@/request'
 
 const loading = ref(false)
